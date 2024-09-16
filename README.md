@@ -15,6 +15,6 @@ Our team of Aerospace Engineering students brings a wealth of knowledge and expe
 - **Raad Haider**
 
 ## Computer Engineering
-Our Computer Engineering scrubs are instrumental in the software and automation aspects:
+Our Computer Engineering students are instrumental in the software and automation aspects:
 - **Philip Carlsson-Coulombe**
 - **Qian Yi Wang**
