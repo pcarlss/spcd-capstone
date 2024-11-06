@@ -1,6 +1,8 @@
 import numpy as np
 from scipy.optimize import fsolve
 import matplotlib.pyplot as plt
+
+
 l1 = np.linspace(30,50,20) # Fixed arm of the rotating member
 l2 = np.linspace(30,50,20) # Free arm attached to the thing
 l3 = np.linspace(15,50,20)
