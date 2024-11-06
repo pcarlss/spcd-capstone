@@ -2,12 +2,35 @@ import numpy as np
 from scipy.optimize import fsolve
 import matplotlib.pyplot as plt
 
-
-l1 = np.linspace(30,50,20) # Fixed arm of the rotating member
-l2 = np.linspace(30,50,20) # Free arm attached to the thing
-l3 = np.linspace(15,50,20)
+RES = 30
+l1 = np.linspace(30,100,RES) # Fixed arm of the rotating member
+l2 = np.linspace(30,100,RES) # Free arm attached to the thing
+l3 = np.linspace(30,100,RES) # Hinge X position
 l4 = 35 #Approximate height of the hinge
 
+def quadsolve_gen(l1, l2, l3, l4, theta):
+    """
+    Given an output rod angle theta that L3 makes with L4, solves for the angles alpha, beta, and gamma
+    
+    alpha: l4 l1
+    
+    beta: l1 l2
+    
+    gamma: l2 l3
+    
+    theta: l3 l4 (given)
+    """
+    d1 = np.sqrt(l3**2 + l4**2 - 2*l3*l4*np.cos(theta))
+    beta = np.arccos( ( d1**2 - (l1**2 + l2**2)) / (-2 * l1 * l2 ) )
+    alpha = np.arcsin( (l3/d1) * np.sin(theta)) + np.arcsin( (l2/d1) * np.sin(beta))
+    gamma = np.arcsin( (l4/d1) * np.sin(theta)) + np.arcsin( (l1/d1) * np.sin(beta))
+    return (beta, alpha, gamma)
+    
+        
+    
+
+    
+    
 def quadsolve_phi(l1, l2, l3, l4, gamma):
     # Cosine law
     d1_squared = l3**2 + l4**2 - 2*l3*l4*np.cos(gamma)
@@ -21,42 +44,36 @@ def quadsolve_phi(l1, l2, l3, l4, gamma):
         return float("nan")
     phi = np.arccos(cos_phi)
     return phi
-
+    
 l1_mesh,l2_mesh, l3_mesh = np.meshgrid(l1, l2, l3)
 
+plate_limit_angle = np.array([-25,25])
+plate_limit_theta = 90 - plate_limit_angle
 
-plate_limit_theta = np.array([-25,25])
-plate_limit_gamma = 90 - plate_limit_theta
 
+theta = np.linspace(np.deg2rad(plate_limit_theta[0]), np.deg2rad(plate_limit_theta[1]), RES, endpoint=True)
 
-gamma = np.linspace(np.deg2rad(plate_limit_gamma[0]), np.deg2rad(plate_limit_gamma[1]), 3, endpoint=True)
-
-phis = np.zeros_like(l1_mesh)
+advantage = np.zeros_like(l1_mesh)
 for i in range(len(l1)):
     for j in range(len(l2)):
         for k in range(len(l3)):
-            d = 0
-            phi = np.pi/2
-            for g in gamma:
-                phi_new = quadsolve_phi(l1[i], l2[j], l3[k], l4, g)
-                if np.isnan(phi_new):
-                    phi = phi_new
-                    d = float("nan")
-                    break
-                d_new = phi_new - np.pi/2
-                if np.abs(d_new) > d:
-                    phi = phi_new
-                    d = np.abs(d_new)
+            adv = np.inf #Best case scenario is infinite advantage
+            for t in theta:
+                alpha, beta, gamma = quadsolve_gen(l1[i], l2[j], l3[k], l4, t)
+                adv_new = (l3[k]*np.sin(gamma))/(l1[i]*np.sin(beta))
+                if adv > adv_new:
+                    adv = adv_new
+                if np.isnan(adv_new) or np.isnan(adv):
+                    adv = np.nan
 
 
-            phis[i][j][k] = phi
+            advantage[i][j][k] = adv
 
 
-
-
+print(advantage)
 
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
-scatter = ax.scatter(l1_mesh, l2_mesh, l3_mesh, c=np.sin(phis), cmap='PRGn')
+scatter = ax.scatter(l1_mesh, l2_mesh, l3_mesh, c=advantage, cmap='YlGn')
 fig.colorbar(scatter, ax=ax)
 plt.show()
