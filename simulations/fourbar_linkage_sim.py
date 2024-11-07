@@ -2,11 +2,11 @@ import numpy as np
 from scipy.optimize import fsolve
 import matplotlib.pyplot as plt
 
-RES = 30
-l1 = np.linspace(30,100,RES) # Fixed arm of the rotating member
-l2 = np.linspace(30,100,RES) # Free arm attached to the thing
-l3 = np.linspace(30,100,RES) # Hinge X position
-l4 = 35 #Approximate height of the hinge
+RES = 20
+l1 = np.linspace(20,50,RES) # driver arm of the rotating member
+l2 = np.linspace(20,50,RES) # coupling arm attached to the thing
+l3 = np.linspace(20,50,RES) # Hinge X position
+l4 = 32.5 #Approximate height of the hinge
 
 def quadsolve_gen(l1, l2, l3, l4, theta):
     """
@@ -74,6 +74,31 @@ print(advantage)
 
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
-scatter = ax.scatter(l1_mesh, l2_mesh, l3_mesh, c=advantage, cmap='YlGn')
-fig.colorbar(scatter, ax=ax)
+advantage_filtered = advantage
+advantage_filtered[advantage_filtered<1] = np.nan
+scatter = ax.scatter(l1_mesh, l2_mesh, l3_mesh, c=advantage_filtered, cmap='coolwarm')
+ax.set_title("Torque ratio variation vs. L1, L2, L3")
+ax.set_xlabel("Driver (L1) (mm)")
+ax.set_ylabel("Coupler (L2) (mm)")
+ax.set_zlabel("Follower (L3) (mm)")
+cbar = fig.colorbar(scatter, ax=ax)
+cbar.set_label("Worst Case Torque Ratio")
+
+
+advantage_filtered[np.isnan(advantage_filtered)] = 0
+max_idx = np.argmax(advantage_filtered)
+max_idx = np.unravel_index(max_idx, advantage_filtered.shape)
+
+torque_ratio = advantage_filtered[max_idx[0]][max_idx[1]][max_idx[2]]
+driver_length = l1[max_idx[0]]
+coupler_length = l2[max_idx[1]]
+follower_length = l3[max_idx[2]]
+frame_length = l4
+
+print(f"OPTIMAL CONDITIONS")
+print(f"Best torque ratio:   {torque_ratio:.3f} ")
+print(f"Best driver length:  {driver_length:.2f} (mm)")
+print(f"Best coupler length: {coupler_length:.2f} (mm)")
+print(f"Frame length:        {frame_length:.2f} (mm)")
+print("\n\n\n")
 plt.show()
