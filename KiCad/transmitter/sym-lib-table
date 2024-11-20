@@ -1,0 +1,4 @@
+(sym_lib_table
+  (version 7)
+  (lib (name "transmitter")(type "KiCad")(uri "${KIPRJMOD}/transmitter.kicad_sym")(options "")(descr ""))
+)
